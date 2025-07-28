@@ -31,9 +31,9 @@ jobs:
           sudo apt install -y python3-pip git zip unzip build-essential
           pip install --upgrade pip buildozer cython
 
-      - name: Accept all Android SDK licenses
+      - name: Accept Android SDK licenses
         run: |
-          yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="${ANDROID_SDK_ROOT}" --licenses
+          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" --licenses
 
       - name: Build Debug APK
         run: buildozer android debug
@@ -52,6 +52,3 @@ jobs:
           path: |
             bin/*.apk
             bin/*.aab
-      - name: Accept all Android SDK licenses
-        run: |
-          yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="${ANDROID_SDK_ROOT}" --licenses
