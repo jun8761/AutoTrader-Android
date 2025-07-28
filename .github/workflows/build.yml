@@ -12,22 +12,24 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up JDK
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK & Build Tools
-        uses: android-actions/setup-android@v3
+      - name: Set up Android SDK, Build‑Tools & NDK
+        uses: google-github-actions/setup-android@v2
         with:
-          api-level: 31
+          api-levels: 31
           build-tools: '36.0.0'
-          ndk: '23.1.7779620'
-          # 이 옵션이 없으면 라이선스 동의 프롬프트에서 멈춥니다
-          accept-android-sdk-licenses: true
+          ndk-version: '23.1.7779620'
+          components: |
+            platform-tools
+            platforms;android-31
+            build-tools;36.0.0
 
-      - name: Install Buildozer dependencies
+      - name: Install Buildozer & Cython
         run: |
           sudo apt update
           sudo apt install -y python3-pip git zip unzip build-essential
@@ -37,7 +39,8 @@ jobs:
         run: buildozer android debug
 
       - name: Enable AAB in spec
-        run: sed -i 's/^#\(android.aab = True\)/\1/' buildozer.spec
+        run: |
+          sed -i 's/^#\(android.aab = True\)/\1/' buildozer.spec
 
       - name: Build Release AAB
         run: buildozer android release
