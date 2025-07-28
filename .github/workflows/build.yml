@@ -6,10 +6,6 @@ on:
       - main
   workflow_dispatch: {}
 
-env:
-  # GitHub Actions가 체크아웃한 코드 경로
-  ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,58 +21,35 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      # 3) SDK cmdline-tools 설치
-      - name: Install Android SDK cmdline-tools
-        run: |
-          sudo apt update
-          sudo apt install -y wget unzip
-          mkdir -p "$ANDROID_SDK_ROOT/cmdline-tools/latest"
-          cd "$ANDROID_SDK_ROOT"
-          wget https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip -O tools.zip
-          unzip tools.zip -d cmdline-tools/latest
-        shell: bash
+      # 3) Android SDK + Build‑Tools + NDK 설치 & 라이선스 수락
+      - name: Set up Android SDK & Build Tools
+        uses: android-actions/setup-android@v2
+        with:
+          api-level: 31
+          build-tools: '36.0.0'
+          ndk: '23.1.7779620'
+          accept-licenses: true   # ← 모든 라이선스 자동 수락
 
-      # 4) 라이선스 직접 수락 (파일 심기)
-      - name: Pre-accept Android SDK licenses
-        run: |
-          mkdir -p "$ANDROID_SDK_ROOT/licenses"
-          # 아래 해시 값은 Google SDK 기본 라이선스 해시입니다
-          echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" > "$ANDROID_SDK_ROOT/licenses/android-sdk-license"
-          echo "84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_SDK_ROOT/licenses/android-sdk-preview-license"
-        shell: bash
-
-      # 5) Build-Tools 와 Platform 설치
-      - name: Install SDK Build-Tools & Platform
-        run: |
-          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" \
-            "platform-tools" \
-            "platforms;android-31" \
-            "build-tools;36.0.0"
-        shell: bash
-
-      # 6) Buildozer 및 Cython 설치
+      # 4) Buildozer 환경 설치
       - name: Install Buildozer & Cython
         run: |
+          sudo apt update
           sudo apt install -y python3-pip git zip unzip build-essential
           pip install --upgrade pip buildozer cython
-        shell: bash
 
-      # 7) Debug APK 빌드
+      # 5) Debug APK 빌드
       - name: Build Debug APK
         run: buildozer android debug
-        shell: bash
 
-      # 8) AAB 옵션 활성화
+      # 6) AAB 옵션 활성화
       - name: Enable AAB in spec
         run: sed -i 's/^#\(android.aab = True\)/\1/' buildozer.spec
-        shell: bash
 
-      # 9) Release AAB 빌드
+      # 7) Release AAB 빌드
       - name: Build Release AAB
         run: buildozer android release
-        shell: bash
 
-      # 🔟 산출물 업로드
+      # 8) 산출물 업로드
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
