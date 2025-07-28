@@ -11,12 +11,27 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+     - name: Set up JDK
+      uses: actions/setup-java@v3
+       with:
+         distribution: 'temurin'
+         java-version: '17'
+
+     - name: Set up Android SDK & Build Tools
+       uses: android-actions/setup-android@v2
+       with:
+         api-level: 31
+         build-tools: 36.0.0
+         ndk: 23.1.7779620
+
       - name: Install Buildozer Dependencies
         run: |
           sudo apt update
           sudo apt install -y python3-pip git zip unzip openjdk-17-jdk
           pip install --upgrade pip buildozer cython
 
+      - name: Accept Android SDK licenses
+       run: yes | sdkmanager --licenses
       - name: Build Debug APK
         run: |
           buildozer android debug
