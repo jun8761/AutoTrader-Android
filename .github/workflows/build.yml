@@ -1,0 +1,38 @@
+name: Build Android App
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Buildozer Dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y python3-pip git zip unzip openjdk-17-jdk
+          pip install --upgrade pip buildozer cython
+
+      - name: Build Debug APK
+        run: |
+          buildozer android debug
+
+      - name: Enable AAB in spec
+        run: |
+          sed -i 's/^#\(android.aab = True\)/\1/' buildozer.spec
+
+      - name: Build Release AAB
+        run: |
+          buildozer android release
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: auto-trader-artifacts
+          path: |
+            bin/*.apk
+            bin/*.aab
