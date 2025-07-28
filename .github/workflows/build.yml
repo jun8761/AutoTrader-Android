@@ -9,7 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
 
@@ -29,12 +28,12 @@ jobs:
       - name: Install Buildozer dependencies
         run: |
           sudo apt update
-          sudo apt install -y python3-pip git zip unzip openjdk-17-jdk
+          sudo apt install -y python3-pip git zip unzip build-essential
           pip install --upgrade pip buildozer cython
 
-      - name: Accept Android SDK licenses
+      - name: Accept all Android SDK licenses
         run: |
-          yes | sdkmanager --licenses
+          yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="${ANDROID_SDK_ROOT}" --licenses
 
       - name: Build Debug APK
         run: buildozer android debug
