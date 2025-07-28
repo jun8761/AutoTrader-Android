@@ -52,3 +52,6 @@ jobs:
           path: |
             bin/*.apk
             bin/*.aab
+      - name: Accept all Android SDK licenses
+        run: |
+          yes | "${ANDROID_SDK_ROOT}/cmdline-tools/latest/bin/sdkmanager" --sdk_root="${ANDROID_SDK_ROOT}" --licenses
