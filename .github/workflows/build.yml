@@ -18,29 +18,44 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Set up Android SDK & Build Tools
-        uses: android-actions/setup-android@v2
-        with:
-          api-level: 31
-          build-tools: '36.0.0'
-          ndk: '23.1.7779620'
+      - name: Install Android SDK Command‑Line Tools
+        # SDK Manager(명령줄 도구)를 설치합니다.
+        run: |
+          sudo apt update
+          sudo apt install -y wget unzip
+          mkdir -p $ANDROID_SDK_ROOT/cmdline-tools
+          cd $ANDROID_SDK_ROOT/cmdline-tools
+          wget https://dl.google.com/android/repository/commandlinetools-linux-9123335_latest.zip -O cmdline-tools.zip
+          unzip cmdline-tools.zip
+          mv cmdline-tools latest
+        env:
+          ANDROID_SDK_ROOT: ${{ runner.tool_cache }}/android-sdk
+
+      - name: Accept all Android SDK licenses
+        # 모든 라이선스를 자동으로 “y”로 수락
+        run: |
+          yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" --licenses
+        env:
+          ANDROID_SDK_ROOT: ${{ runner.tool_cache }}/android-sdk
+
+      - name: Install SDK Build‑Tools & Platforms
+        # 필요한 빌드‐툴과 플랫폼을 설치
+        run: |
+          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --sdk_root="$ANDROID_SDK_ROOT" \
+            "build-tools;36.0.0" "platforms;android-31"
+        env:
+          ANDROID_SDK_ROOT: ${{ runner.tool_cache }}/android-sdk
 
       - name: Install Buildozer dependencies
         run: |
-          sudo apt update
           sudo apt install -y python3-pip git zip unzip build-essential
           pip install --upgrade pip buildozer cython
-
-      - name: Accept Android SDK licenses
-        run: |
-          yes | "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" --sdk_root="$ANDROID_SDK_ROOT" --licenses
 
       - name: Build Debug APK
         run: buildozer android debug
 
       - name: Enable AAB in spec
-        run: |
-          sed -i 's/^#\(android.aab = True\)/\1/' buildozer.spec
+        run: sed -i 's/^#\(android.aab = True\)/\1/' buildozer.spec
 
       - name: Build Release AAB
         run: buildozer android release
